@@ -16,6 +16,7 @@ public class PlantillaRoutesRest {
     public RouterFunction<ServerResponse> plantillaRoutes(PlantillaHandler plantillaHandler) {
         return route(POST("/api/plantilla/save"), plantillaHandler::savePlantilla)
                 .andRoute(GET("/api/plantilla/list"), plantillaHandler::getAllPlantillas)
-                .andRoute(DELETE("/api/plantilla/delete/{id}"), plantillaHandler::deletePlantilla); // Nueva ruta para listar plantillas
+                .andRoute(DELETE("/api/plantilla/delete/{id}"), plantillaHandler::deletePlantilla)
+                .andRoute(GET("api/plantilla/{id}"), plantillaHandler::findById);
     }
 }

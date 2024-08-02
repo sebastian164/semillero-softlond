@@ -1,13 +1,11 @@
 package co.com.softlond.mongo.Plantilla;
 
 import co.com.softlond.model.HistorialModel;
-import co.com.softlond.model.PlantillaModel;
 import co.com.softlond.model.gateways.HistorialGateways;
-import co.com.softlond.model.gateways.PlantillaGateways;
 import co.com.softlond.mongo.Collections.HistorialCollections;
+import co.com.softlond.mongo.Plantilla.Mapper.HistorialMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Repository

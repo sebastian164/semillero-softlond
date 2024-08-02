@@ -1,4 +1,4 @@
-package co.com.softlond.mongo.Plantilla;
+package co.com.softlond.mongo.Plantilla.Mapper;
 
 import co.com.softlond.model.HistorialModel;
 import co.com.softlond.model.PlantillaModel;

@@ -32,4 +32,8 @@ public class PlantillaOperationsUseCase  {
         return plantillaGateways.deletePlantillaById(id);
     }
 
+    public Mono<PlantillaModel> findById(String id){
+        return  plantillaGateways.findById(id);
+    }
+
 }

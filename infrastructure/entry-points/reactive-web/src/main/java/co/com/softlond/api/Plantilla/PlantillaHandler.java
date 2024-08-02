@@ -40,4 +40,13 @@ public class PlantillaHandler {
                 .switchIfEmpty(ServerResponse.notFound().build())
                 .onErrorResume(error -> ServerResponse.badRequest().bodyValue(error.getMessage()));
     }
+
+    public Mono<ServerResponse> findById(ServerRequest request){
+        String id = request.pathVariable("id");
+
+        return plantillaOperationsUseCase.findById(id)
+                .flatMap(plantilla -> ServerResponse.ok().bodyValue(plantilla))
+                .switchIfEmpty(ServerResponse   .noContent().build())
+                .onErrorResume(error -> ServerResponse.badRequest().bodyValue(error.getMessage()));
+    }
 }

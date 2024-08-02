@@ -8,4 +8,5 @@ public interface PlantillaGateways {
     Mono<PlantillaModel> savePlantilla(PlantillaModel plantilla);
     Flux<PlantillaModel> listPlantilla();
     Mono<Void> deletePlantillaById(String id);
+    Mono<PlantillaModel> findById(String id);
 }

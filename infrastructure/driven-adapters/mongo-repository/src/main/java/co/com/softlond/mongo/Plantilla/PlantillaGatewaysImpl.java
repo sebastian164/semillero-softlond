@@ -1,7 +1,7 @@
 package co.com.softlond.mongo.Plantilla;
 
-import co.com.softlond.model.HistorialModel;
 import co.com.softlond.model.gateways.HistorialGateways;
+import co.com.softlond.mongo.Plantilla.Mapper.PlantillaMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -21,10 +21,8 @@ public class PlantillaGatewaysImpl implements PlantillaGateways {
 
     @Override
     public Mono<PlantillaModel> savePlantilla(PlantillaModel plantilla) {
-        HistorialModel historialModel = new HistorialModel();
-        historialModel.setLastDescription(plantilla.getDescripcion());
-        return historialGateways.saveHistorial(historialModel)
-                .then(reactivePlantillaMongoRepository.save(PlantillaMapper.toCollection(plantilla)))
+
+        return reactivePlantillaMongoRepository.save(PlantillaMapper.toCollection(plantilla))
                 .map(PlantillaMapper::toModel);
     }
 
@@ -37,6 +35,12 @@ public class PlantillaGatewaysImpl implements PlantillaGateways {
     @Override
     public Mono<Void> deletePlantillaById(String id) {
         return reactivePlantillaMongoRepository.deleteById(id);
+    }
+
+    @Override
+    public Mono<PlantillaModel> findById(String id) {
+        return reactivePlantillaMongoRepository.findById(id)
+                .map(PlantillaMapper::toModel);
     }
 
 

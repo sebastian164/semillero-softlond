@@ -15,8 +15,11 @@ public class HistorialOperationsUseCase {
     }
 
     public Mono<HistorialModel> saveHistorial(HistorialModel historialModel){
-        historialModel.setContador(historialModel.getContador()+1);
         return  historialGateways.saveHistorial(historialModel);
+    }
+
+    public Mono<HistorialModel> findById(String id){
+        return historialGateways.findById(id);
     }
 
 
