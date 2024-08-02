@@ -24,11 +24,16 @@ public class PlantillaOperationsUseCase  {
     }
 
     public Mono<PlantillaModel> savePlantilla(PlantillaModel plantilla) {
+        boolean isNew = plantilla.getId() == null;
+
         return plantillaGateways.savePlantilla(plantilla)
                 .doOnSuccess(savedPlantilla ->
-                        saveHistorialAsync(savedPlantilla.getDescripcion())
-                                .subscribeOn(Schedulers.boundedElastic())
-                                .subscribe());
+                        Mono.just(savedPlantilla)
+                                .filter(p -> plantilla.getId() == null)  // Verifica si es nuevo usando la plantilla original
+                                .flatMap(newPlantilla -> saveHistorialAsync(newPlantilla.getDescripcion()))  // Guarda el historial si es nuevo
+                                .subscribeOn(Schedulers.boundedElastic())  // Ejecuta en un hilo separado
+                                .subscribe()  // Inicia la operación asíncrona
+                );
     }
 
     private Mono<Void> saveHistorialAsync(String descripcion){
