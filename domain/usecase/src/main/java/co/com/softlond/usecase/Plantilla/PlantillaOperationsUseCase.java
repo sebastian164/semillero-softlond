@@ -11,12 +11,16 @@ import co.com.softlond.model.gateways.PlantillaGateways;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
+import reactor.util.Logger;
+import reactor.util.Loggers;
 
 @Service
-public class PlantillaOperationsUseCase  {
-    
+public class PlantillaOperationsUseCase {
+
     private final PlantillaGateways plantillaGateways;
     private final HistorialOperationsUseCase historialOperationsUseCase;
+    private final Logger logger = Loggers.getLogger(PlantillaOperationsUseCase.class);
+
 
     public PlantillaOperationsUseCase(PlantillaGateways plantillaGateways, HistorialOperationsUseCase historialOperationsUseCase) {
         this.plantillaGateways = plantillaGateways;
@@ -24,41 +28,50 @@ public class PlantillaOperationsUseCase  {
     }
 
     public Mono<PlantillaModel> savePlantilla(PlantillaModel plantilla) {
-        boolean isNew = plantilla.getId() == null;
 
-        return plantillaGateways.savePlantilla(plantilla)
-                .doOnSuccess(savedPlantilla ->
-                        Mono.just(savedPlantilla)
-                                .filter(p -> plantilla.getId() == null)  // Verifica si es nuevo usando la plantilla original
-                                .flatMap(newPlantilla -> saveHistorialAsync(newPlantilla.getDescripcion()))  // Guarda el historial si es nuevo
-                                .subscribeOn(Schedulers.boundedElastic())  // Ejecuta en un hilo separado
-                                .subscribe()  // Inicia la operación asíncrona
-                );
+        return Mono.justOrEmpty(plantilla.getId())
+                .filter(id -> !id.isEmpty())
+                .flatMap(id -> plantillaGateways.findById(id).flatMap(existingPlantilla -> plantillaGateways.savePlantilla(plantilla))
+                        .doOnSuccess(savedPlantilla -> handleHistorial(savedPlantilla, false)))
+                .switchIfEmpty(
+                        plantillaGateways.savePlantilla(plantilla)
+                                .doOnSuccess(savedPlantilla -> handleHistorial(savedPlantilla, true)))
+                .onErrorResume(e -> {
+                    logger.error("Error to save the plantilla: {}", e.getMessage(), e);
+                    return Mono.empty();
+                });
     }
 
-    private Mono<Void> saveHistorialAsync(String descripcion){
+    private void handleHistorial(PlantillaModel savedPlantilla, boolean isNew) {
+        saveHistorialAsync(savedPlantilla.getDescripcion(), isNew)
+                .subscribeOn(Schedulers.boundedElastic())
+                .subscribe();
+    }
+
+    private Mono<Void> saveHistorialAsync(String descripcion, boolean isNew) {
         return historialOperationsUseCase.findById(Constans.HISTORIAL_ID)
                 .defaultIfEmpty(new HistorialModel())
                 .flatMap(history -> {
-                    history.setContador(null == history.getContador() ? 1 : history.getContador() + 1);
+                    if (isNew) {
+                        history.setContador(null == history.getContador() ? 1 : history.getContador() + 1);
+                    }
                     history.setLastDescription(descripcion);
                     return historialOperationsUseCase.saveHistorial(history);
                 })
                 .then();
     }
 
-    public Flux<PlantillaModel> listPlantilla(){
+    public Flux<PlantillaModel> listPlantilla() {
         return plantillaGateways.listPlantilla();
     }
 
-    public Mono<Void> deletePlantillaById(String id){
+    public Mono<Void> deletePlantillaById(String id) {
         return plantillaGateways.deletePlantillaById(id);
     }
 
-    public Mono<PlantillaModel> findById(String id){
-        return  plantillaGateways.findById(id);
+    public Mono<PlantillaModel> findById(String id) {
+        return plantillaGateways.findById(id);
     }
-
 
 
 }
