@@ -31,15 +31,31 @@ public class PlantillaOperationsUseCase {
 
         return Mono.justOrEmpty(plantilla.getId())
                 .filter(id -> !id.isEmpty())
-                .flatMap(id -> plantillaGateways.findById(id).flatMap(existingPlantilla -> plantillaGateways.savePlantilla(plantilla))
-                        .doOnSuccess(savedPlantilla -> handleHistorial(savedPlantilla, false)))
+                .flatMap(id -> plantillaGateways.findById(id)
+                        .flatMap(existingPlantilla -> {
+                            return plantillaGateways.savePlantilla(plantilla)
+                                    .doOnSuccess(savedPlantilla -> {
+                                        if (savedPlantilla != null) {
+                                            handleHistorial(savedPlantilla, false);
+                                        } else {
+                                            logger.warn("Saved plantilla is null after saving with existing ID");
+                                        }
+                                    });
+                        }))
                 .switchIfEmpty(
                         plantillaGateways.savePlantilla(plantilla)
-                                .doOnSuccess(savedPlantilla -> handleHistorial(savedPlantilla, true)))
+                                .doOnSuccess(savedPlantilla -> {
+                                    if (savedPlantilla != null) {
+                                        handleHistorial(savedPlantilla, true);
+                                    } else {
+                                        logger.warn("Saved plantilla is null after saving new template");
+                                    }
+                                }))
                 .onErrorResume(e -> {
-                    logger.error("Error to save the plantilla: {}", e.getMessage(), e);
+                    logger.error("Error saving the plantilla: {}", e.getMessage(), e); // Manejo de errores
                     return Mono.empty();
                 });
+
     }
 
     private void handleHistorial(PlantillaModel savedPlantilla, boolean isNew) {
